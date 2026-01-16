@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, BookOpen, Clock, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 import { coursesApi, Course } from '../api/client';
 
 export default function HomePage() {
@@ -34,11 +35,20 @@ export default function HomePage() {
       setShowCreateForm(false);
       loadCourses();
     } catch (error: any) {
-      if (error.response?.status === 409) {
-        alert('Course already exists!');
-      } else {
-        alert('Failed to create course');
-      }
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const data = axios.isAxiosError(error) ? error.response?.data : undefined;
+      const message =
+        typeof data === 'string'
+          ? data
+          : data?.message || data?.error || error?.message || 'Unknown error';
+
+      console.error('Failed to create course', {
+        url: '/api/courses',
+        status,
+        message,
+        error,
+      });
+      alert(`Failed to create course (status ${status ?? 'unknown'}): ${message}`);
     }
   };
 
@@ -159,4 +169,3 @@ export default function HomePage() {
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +8,22 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+const logRequest = (method: string, url: string) => {
+  if (!import.meta.env.DEV) {
+    return;
+  }
+  const fullUrl = API_BASE_URL ? `${API_BASE_URL}${url}` : url;
+  console.info(`[api] ${method} ${fullUrl}`);
+};
+
+const logResponse = (method: string, url: string, status: number) => {
+  if (!import.meta.env.DEV) {
+    return;
+  }
+  const fullUrl = API_BASE_URL ? `${API_BASE_URL}${url}` : url;
+  console.info(`[api] ${method} ${fullUrl} -> ${status}`);
+};
 
 // Types
 export interface Course {
@@ -49,8 +65,11 @@ export const coursesApi = {
   },
   
   create: async (code: string, title: string): Promise<Course> => {
-    const { data } = await api.post<Course>('/api/courses', { code, title });
-    return data;
+    const url = '/api/courses';
+    logRequest('POST', url);
+    const response = await api.post<Course>(url, { code, title });
+    logResponse('POST', url, response.status);
+    return response.data;
   },
 };
 
@@ -156,4 +175,3 @@ export const outputsApi = {
     return data;
   },
 };
-
