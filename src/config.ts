@@ -25,6 +25,11 @@ export const config = {
     apiKey: process.env.ANTHROPIC_API_KEY || '',
   },
 
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || '',
+    model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+  },
+
   // File upload limits
   maxFileSize: 200 * 1024 * 1024, // 200MB
   allowedMimeTypes: [
