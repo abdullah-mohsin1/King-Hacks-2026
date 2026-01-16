@@ -200,7 +200,7 @@ def main():
     """CLI entry point for the summarizer"""
     if len(sys.argv) < 2:
         print(json.dumps({
-            "error": "Usage: python gemini_summarizer.py <command> <input> [options_json]"
+            "error": "Usage: python openai_sumarizer.py <command> <input> [options_json]"
         }))
         sys.exit(1)
     
