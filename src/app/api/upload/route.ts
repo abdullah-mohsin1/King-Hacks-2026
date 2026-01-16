@@ -1,46 +1,46 @@
-import { FastifyPluginAsync } from "fastify";
+import { NextResponse } from "next/server"; 
 import fs from "fs";
 import path from "path";
-import { config, storagePaths } from "../../../config";
-import prisma from "../../../db";
+import { config, storagePaths } from "@/config";
+import prisma from "@/db";
 
-const uploadRoute: FastifyPluginAsync = async (fastify) => {
-  fastify.post("/", async (request, reply) => {
-    const data = await request.file();
+export async function POST(req: Request) {
+  const formData = await req.formData();
+  const file = formData.get("file") as File;
 
-    if (!data) {
-      return reply.status(400).send({ error: "No file uploaded" });
-    }
+  if (!file) {
+    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+  }
 
-    if (!config.allowedMimeTypes.includes(data.mimetype)) {
-      return reply.status(400).send({ error: "Invalid file type" });
-    }
+  if (!config.allowedMimeTypes.includes(file.type)) {
+    return NextResponse.json(
+      { error: "Invalid file type" },
+      { status: 400 }
+    );
+  }
 
-    await fs.promises.mkdir(storagePaths.audio, { recursive: true });
+  await fs.promises.mkdir(storagePaths.audio, { recursive: true });
 
-    const filename = `${Date.now()}-${data.filename}`;
-    const filepath = path.join(storagePaths.audio, filename);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const filename = `${Date.now()}-${file.name}`;
+  const filepath = path.join(storagePaths.audio, filename);
 
-    const buffer = await data.toBuffer();
-    await fs.promises.writeFile(filepath, buffer);
+  await fs.promises.writeFile(filepath, buffer);
 
-    await prisma.upload.create({
-      data: {
-        filename: data.filename,
-        filepath: filepath,
-        mimetype: data.mimetype,
-        size: buffer.length,
-      },
-    });
+  await prisma.upload.create({
+  data: {
+    filename: file.name,
+    filepath: filepath,
+    mimetype: file.type,
+    size: file.size,
+  },
+});
 
-    return reply.send({
-      ok: true,
-      filename,
-    });
+  return NextResponse.json({
+    ok: true,
+    filename,
   });
-};
-
-export default uploadRoute;
+}
 
 
 
