@@ -216,7 +216,7 @@ def main():
     
     # Initialize summarizer
     model = os.environ.get('OPENAI_MODEL', 'gpt-3.5-turbo')
-    summarizer = GeminiSummarizer(api_key, model)
+    summarizer = OpenAISummarizer(api_key, model)
     
     try:
         if command == "generate":

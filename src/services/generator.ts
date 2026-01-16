@@ -180,7 +180,7 @@ class StubGenerator implements LLMProvider {
 }
 
 /**
- * OpenAI provider (skeleton)
+ * OpenAI provider - uses OpenAI GPT models via LangChain for intelligent summarization
  */
 class OpenAIGenerator implements LLMProvider {
   private apiKey: string;
@@ -199,10 +199,63 @@ class OpenAIGenerator implements LLMProvider {
     quiz?: any;
     podcastScript?: string;
   }> {
-    // TODO: Implement OpenAI API integration
-    // For now, fallback to stub
-    const stub = new StubGenerator();
-    return stub.generateNotes(transcript, options);
+    // Call Python LangChain service
+    return this.callPythonService(transcript, options);
+  }
+
+  private async callPythonService(
+    transcript: Transcript,
+    options: GenerationOptions
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const pythonScript = path.join(__dirname, 'openai_summarizer.py');
+      
+      // Create temporary transcript JSON string
+      const transcriptData = JSON.stringify(transcript);
+      const optionsData = JSON.stringify(options);
+      
+      // Spawn Python process
+      const python = spawn('python', [pythonScript, 'generate', '-', optionsData], {
+        env: {
+          ...process.env,
+          OPENAI_API_KEY: this.apiKey,
+          OPENAI_MODEL: 'gpt-3.5-turbo',
+        },
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      // Send transcript via stdin
+      python.stdin.write(transcriptData);
+      python.stdin.end();
+
+      python.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(`Python service failed: ${stderr || stdout}`));
+          return;
+        }
+
+        try {
+          const result = JSON.parse(stdout);
+          if (result.error) {
+            reject(new Error(result.error));
+          } else {
+            resolve(result);
+          }
+        } catch (err) {
+          reject(new Error(`Failed to parse Python output: ${stdout}`));
+        }
+      });
+    });
   }
 }
 
@@ -293,7 +346,7 @@ class GeminiGenerator implements LLMProvider {
  */
 function getGeneratorProvider(): LLMProvider {
   if (config.openai.apiKey) {
-    return new GeminiGenerator(config.openai.apiKey, 'gpt-3.5-turbo');
+    return new OpenAIGenerator(config.openai.apiKey);
   }
 
   if (config.gemini.apiKey) {

@@ -14,7 +14,7 @@ load_dotenv()
 # Add the services directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'services'))
 
-from openai_summarizer import OpenAISummarizer as GeminiSummarizer
+from openai_summarizer import OpenAISummarizer
 
 # Sample transcript (simulating STT output)
 sample_transcript = {
@@ -96,7 +96,7 @@ def main():
     model = os.environ.get('OPENAI_MODEL', 'gpt-3.5-turbo')
     print(f"Model: {model}")
     
-    summarizer = GeminiSummarizer(api_key, model)
+    summarizer = OpenAISummarizer(api_key, model)
     transcript_text = summarizer.format_transcript(sample_transcript['segments'])
     
     # Step 3: Generate short notes
