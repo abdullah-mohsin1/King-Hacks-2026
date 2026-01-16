@@ -293,7 +293,7 @@ class GeminiGenerator implements LLMProvider {
  */
 function getGeneratorProvider(): LLMProvider {
   if (config.openai.apiKey) {
-    return new GeminiGenerator(config.openai.apiKey, 'gpt-3.5-turbo');
+    return new OpenAIGenerator(config.openai.apiKey);
   }
 
   if (config.gemini.apiKey) {
