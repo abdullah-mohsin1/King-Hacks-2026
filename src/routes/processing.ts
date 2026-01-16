@@ -4,33 +4,100 @@ import prisma from '../db';
 import { AppError } from '../utils/errors';
 import { jobRunner } from '../services/jobs';
 
-const processRequestSchema = z.object({
-  generate: z.object({
-    notesShort: z.boolean().default(true),
-    notesDetailed: z.boolean().default(true),
-    flashcards: z.boolean().default(false),
-    quiz: z.boolean().default(false),
-    podcastScript: z.boolean().default(true),
-  }),
-  prefs: z
-    .object({
-      tone: z.enum(['friendly tutor', 'formal', 'exam mode']).optional(),
-      difficulty: z.enum(['intro', 'intermediate', 'advanced']).optional(),
-      lengthMinutes: z.number().int().positive().optional(),
-      focusTopics: z.array(z.string()).optional(),
-    })
-    .optional(),
-  tts: z.object({
-    enabled: z.boolean().default(true),
-    voiceId: z.string().nullable().optional(),
-    twoVoice: z.boolean().default(false),
-  }),
-});
+const errorResponseSchema = {
+  type: 'object',
+  properties: {
+    error: {
+      type: 'object',
+      properties: {
+        code: { type: 'string' },
+        message: { type: 'string' },
+        details: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              path: { type: 'string' },
+              message: { type: 'string' },
+            },
+            required: ['path', 'message'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['code', 'message'],
+      additionalProperties: true,
+    },
+  },
+  required: ['error'],
+  additionalProperties: false,
+} as const;
+
 
 export async function processingRoutes(fastify: FastifyInstance) {
   // POST /api/lectures/:lectureId/process
   fastify.post(
     '/:lectureId/process',
+    {
+      schema: {
+        tags: ['Processing'],
+        summary: 'Start processing a lecture',
+        description: 'Starts the processing pipeline: transcribe → generate notes → TTS (optional)',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string' },
+          },
+        },
+        body: {
+          type: 'object',
+          properties: {
+            generate: {
+              type: 'object',
+              properties: {
+                notesShort: { type: 'boolean', default: true },
+                notesDetailed: { type: 'boolean', default: true },
+                flashcards: { type: 'boolean', default: false },
+                quiz: { type: 'boolean', default: false },
+                podcastScript: { type: 'boolean', default: true },
+              },
+            },
+            prefs: {
+              type: 'object',
+              properties: {
+                tone: { type: 'string', enum: ['friendly tutor', 'formal', 'exam mode'] },
+                difficulty: { type: 'string', enum: ['intro', 'intermediate', 'advanced'] },
+                lengthMinutes: { type: 'integer', minimum: 1 },
+                focusTopics: { type: 'array', items: { type: 'string' } },
+              },
+            },
+            tts: {
+              type: 'object',
+              properties: {
+                enabled: { type: 'boolean', default: true },
+                voiceId: { type: 'string', nullable: true },
+                twoVoice: { type: 'boolean', default: false },
+              },
+            },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              lectureId: { type: 'integer' },
+              status: { type: 'string' },
+              jobStarted: { type: 'boolean' },
+              message: { type: 'string' },
+            },
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+          409: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { lectureId: string } }>,
       reply: FastifyReply
@@ -101,6 +168,35 @@ export async function processingRoutes(fastify: FastifyInstance) {
   // GET /api/lectures/:lectureId/status
   fastify.get(
     '/:lectureId/status',
+    {
+      schema: {
+        tags: ['Processing'],
+        summary: 'Get processing status',
+        description: 'Returns the current processing status of a lecture',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string'},
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: {
+                type: 'string',
+                enum: ['uploaded', 'transcribing', 'transcribed', 'generating', 'voiced', 'complete', 'failed'],
+              },
+              errorMessage: { type: 'string', nullable: true },
+              updatedAt: { type: 'string', format: 'date-time' },
+            },
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { lectureId: string } }>,
       reply: FastifyReply

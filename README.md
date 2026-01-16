@@ -40,14 +40,22 @@ npm install
 
 ### 2. Set Up Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file from the example:
+
+```bash
+cp .env.example .env
+```
+
+Or create it manually with:
 
 ```bash
 # Server
 PORT=3000
 
 # Database
-DATABASE_URL="file:./data/app.db"
+# Note: Prisma resolves paths relative to prisma/schema.prisma
+# Using ./prisma/data/app.db keeps Prisma and server consistent
+DATABASE_URL="file:./prisma/data/app.db"
 
 # Storage
 STORAGE_ROOT=./storage
@@ -60,6 +68,8 @@ ELEVENLABS_VOICE_ID=
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 ```
+
+**Important**: Prisma resolves file paths relative to `prisma/schema.prisma`. Using `DATABASE_URL="file:./prisma/data/app.db"` ensures both Prisma CLI and the server use the same database file. If you use `file:./data/app.db`, Prisma will create it at `prisma/data/app.db` instead.
 
 **Note**: The system works end-to-end without any API keys using stub providers. Add keys to enable real STT, LLM generation, and TTS.
 
@@ -85,6 +95,65 @@ npm start
 ```
 
 The server will start on `http://localhost:3000` (or your configured PORT).
+
+## Frontend
+
+A beautiful React frontend is available in the `frontend/` directory. See [frontend/README.md](frontend/README.md) for detailed setup instructions.
+
+### Quick Start
+
+```bash
+# Install frontend dependencies
+cd frontend
+npm install
+
+# Start frontend dev server
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173` and will automatically proxy API requests to the backend.
+
+### Frontend Features
+
+- 🎨 Beautiful UI with maroon red, navy blue, and deep yellow color scheme
+- 📚 Course management interface
+- 📤 Drag-and-drop lecture upload
+- ⚡ Real-time processing status updates
+- 📝 View transcripts, notes, flashcards, and quizzes
+- 📱 Fully responsive design
+
+## API Documentation
+
+### Swagger UI
+
+Interactive API documentation is available at:
+
+- **Swagger UI**: http://localhost:3000/docs
+- **OpenAPI JSON**: http://localhost:3000/docs/json
+
+The Swagger UI provides:
+- Complete endpoint documentation
+- Request/response schemas
+- Try-it-out functionality
+- Error response formats
+
+## Smoke Test
+
+Run the end-to-end smoke test to verify the complete pipeline:
+
+```bash
+npm run smoke
+```
+
+This script will:
+1. Check server health
+2. Create a test course
+3. Upload a lecture file
+4. Start processing
+5. Poll for completion
+6. Verify outputs are accessible
+
+The smoke test works with stub providers (no API keys required).
 
 ## API Endpoints
 

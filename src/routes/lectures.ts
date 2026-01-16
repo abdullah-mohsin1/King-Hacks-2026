@@ -5,10 +5,71 @@ import { AppError } from '../utils/errors';
 import { saveAudioFile } from '../services/storage';
 import { config } from '../config';
 
+const errorResponseSchema = {
+  type: 'object',
+  properties: {
+    error: {
+      type: 'object',
+      properties: {
+        code: { type: 'string' },
+        message: { type: 'string' },
+        details: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              path: { type: 'string' },
+              message: { type: 'string' },
+            },
+            required: ['path', 'message'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['code', 'message'],
+      additionalProperties: true,
+    },
+  },
+  required: ['error'],
+  additionalProperties: false,
+} as const;
+
 export async function lecturesRoutes(fastify: FastifyInstance) {
   // POST /api/courses/:courseCode/lectures
   fastify.post(
     '/:courseCode/lectures',
+    {
+      schema: {
+        tags: ['Lectures'],
+        summary: 'Upload a lecture',
+        description: 'Upload an audio/video file for a lecture. Accepts multipart/form-data with fields: lectureNumber (required), lectureTitle (optional), file (required)',
+        consumes: ['multipart/form-data'],
+        params: {
+          type: 'object',
+          required: ['courseCode'],
+          properties: {
+            courseCode: { type: 'string' },
+          },
+        },
+        response: {
+          201: {
+            description: 'Lecture uploaded successfully',
+            type: 'object',
+            properties: {
+              lectureId: { type: 'integer' },
+              courseCode: { type: 'string' },
+              lectureNumber: { type: 'integer' },
+              lectureTitle: { type: 'string', nullable: true },
+              status: { type: 'string' },
+              createdAt: { type: 'string', format: 'date-time' },
+            },
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+          409: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { courseCode: string } }>,
       reply: FastifyReply
@@ -115,6 +176,37 @@ export async function lecturesRoutes(fastify: FastifyInstance) {
   // GET /api/courses/:courseCode/lectures
   fastify.get(
     '/:courseCode/lectures',
+    {
+      schema: {
+        tags: ['Lectures'],
+        summary: 'List lectures for a course',
+        description: 'Returns a list of all lectures for the specified course',
+        params: {
+          type: 'object',
+          required: ['courseCode'],
+          properties: {
+            courseCode: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                lectureNumber: { type: 'integer' },
+                lectureTitle: { type: 'string', nullable: true },
+                status: { type: 'string' },
+                createdAt: { type: 'string', format: 'date-time' },
+                updatedAt: { type: 'string', format: 'date-time' },
+              },
+            },
+          },
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { courseCode: string } }>,
       reply: FastifyReply
@@ -149,6 +241,39 @@ export async function lecturesRoutes(fastify: FastifyInstance) {
   // GET /api/courses/:courseCode/lectures/:lectureNumber
   fastify.get(
     '/:courseCode/lectures/:lectureNumber',
+    {
+      schema: {
+        tags: ['Lectures'],
+        summary: 'Get lecture details',
+        description: 'Returns detailed information about a specific lecture including available outputs',
+        params: {
+          type: 'object',
+          required: ['courseCode', 'lectureNumber'],
+          properties: {
+            courseCode: { type: 'string'},
+            lectureNumber: { type: 'string'},
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer' },
+              courseCode: { type: 'string' },
+              lectureNumber: { type: 'integer' },
+              lectureTitle: { type: 'string', nullable: true },
+              status: { type: 'string' },
+              errorMessage: { type: 'string', nullable: true },
+              outputs: { type: 'object' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+            },
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{
         Params: { courseCode: string; lectureNumber: string };
