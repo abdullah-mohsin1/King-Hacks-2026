@@ -15,7 +15,7 @@ load_dotenv()
 # Add the services directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'services'))
 
-from gemini_summarizer import GeminiSummarizer
+from openai_summarizer import OpenAISummarizer as GeminiSummarizer
 
 # Sample transcript (simulating STT output)
 sample_transcript = {
