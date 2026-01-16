@@ -96,6 +96,32 @@ npm start
 
 The server will start on `http://localhost:3000` (or your configured PORT).
 
+## Frontend
+
+A beautiful React frontend is available in the `frontend/` directory. See [frontend/README.md](frontend/README.md) for detailed setup instructions.
+
+### Quick Start
+
+```bash
+# Install frontend dependencies
+cd frontend
+npm install
+
+# Start frontend dev server
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173` and will automatically proxy API requests to the backend.
+
+### Frontend Features
+
+- 🎨 Beautiful UI with maroon red, navy blue, and deep yellow color scheme
+- 📚 Course management interface
+- 📤 Drag-and-drop lecture upload
+- ⚡ Real-time processing status updates
+- 📝 View transcripts, notes, flashcards, and quizzes
+- 📱 Fully responsive design
+
 ## API Documentation
 
 ### Swagger UI
