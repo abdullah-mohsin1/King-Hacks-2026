@@ -12,10 +12,16 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio"
   },
-  "keywords": ["lecture", "transcription", "notes", "education"],
+  "keywords": [
+    "lecture",
+    "transcription",
+    "notes",
+    "education"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.31.0",
     "@fastify/multipart": "^8.0.0",
     "@prisma/client": "^5.19.0",
     "dotenv": "^16.4.5",
@@ -29,4 +35,3 @@
     "typescript": "^5.5.4"
   }
 }
-

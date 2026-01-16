@@ -8,3 +8,7 @@ storage/
 *.db
 *.db-journal
 
+# lecture-stt / tooling outputs (optional but recommended)
+tools/lecture-stt/out/
+tools/lecture-stt/audio/
+
