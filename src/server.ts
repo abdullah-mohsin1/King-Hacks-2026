@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import multipart from '@fastify/multipart';
 import { config } from './config';
-import { errorHandler, AppError } from './utils/errors';
+import { errorHandler } from './utils/errors';
 import { coursesRoutes } from './routes/courses';
 import { lecturesRoutes } from './routes/lectures';
 import { processingRoutes } from './routes/processing';
@@ -10,6 +10,7 @@ import { publicRoutes } from './routes/public';
 import fs from 'fs/promises';
 import path from 'path';
 import { storagePaths } from './config';
+import { registerSwagger } from './plugins/swagger';
 
 async function ensureDirectories() {
   // Ensure data directory exists
@@ -38,10 +39,32 @@ async function build() {
   // Error handler
   fastify.setErrorHandler(errorHandler);
 
+  // Swagger docs (register BEFORE routes so it can hook route definitions)
+  await registerSwagger(fastify);
+
   // Health check
-  fastify.get('/health', async (request, reply) => {
-    return reply.send({ status: 'ok', timestamp: new Date().toISOString() });
-  });
+  fastify.get(
+    '/health',
+    {
+      schema: {
+        tags: ['Health'],
+        summary: 'Health check',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              timestamp: { type: 'string' },
+            },
+            required: ['status', 'timestamp'],
+          },
+        },
+      },
+    },
+    async (_request, reply) => {
+      return reply.send({ status: 'ok', timestamp: new Date().toISOString() });
+    }
+  );
 
   // API routes
   await fastify.register(coursesRoutes, { prefix: '/api/courses' });
@@ -88,4 +111,3 @@ process.on('SIGTERM', async () => {
 });
 
 start();
-

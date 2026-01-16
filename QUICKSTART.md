@@ -17,8 +17,9 @@ npm --version   # Any recent version
 2. **Create `.env` file:**
    ```bash
    cp .env.example .env
-   # Or create manually with the content from README.md
    ```
+   
+   **Important**: The `.env.example` uses `DATABASE_URL="file:./prisma/data/app.db"` because Prisma resolves paths relative to `prisma/schema.prisma`. This ensures both Prisma CLI and the server use the same database file.
 
 3. **Set up database:**
    ```bash
@@ -36,11 +37,21 @@ npm --version   # Any recent version
    # Health check
    curl http://localhost:3000/health
 
+   # View API docs
+   open http://localhost:3000/docs  # or visit in browser
+
    # Create a course
    curl -X POST http://localhost:3000/api/courses \
      -H "Content-Type: application/json" \
      -d '{"code": "CISC 121", "title": "Intro to Data Structures"}'
    ```
+
+6. **Run smoke test (optional):**
+   ```bash
+   npm run smoke
+   ```
+   
+   This runs an end-to-end test: creates course → uploads lecture → processes → verifies outputs.
 
 ## What Works Without API Keys
 
@@ -67,7 +78,8 @@ To enable real functionality, add API keys to your `.env`:
 - Or use: `yarn install` or `pnpm install`
 
 **Database errors:**
-- Make sure `data/` directory exists and is writable
+- Make sure `prisma/data/` directory exists and is writable
+- Check that `DATABASE_URL` in `.env` matches the path Prisma expects (relative to `prisma/schema.prisma`)
 - Run `npm run prisma:push` again
 
 **Port already in use:**

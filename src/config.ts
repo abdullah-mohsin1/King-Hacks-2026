@@ -5,24 +5,26 @@ dotenv.config();
 
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
-  databaseUrl: process.env.DATABASE_URL || 'file:./data/app.db',
+  // IMPORTANT: keep this consistent with Prisma. Recommended default:
+  // file:./prisma/data/app.db
+  databaseUrl: process.env.DATABASE_URL || 'file:./prisma/data/app.db',
   storageRoot: process.env.STORAGE_ROOT || './storage',
-  
+
   // ElevenLabs TTS
   elevenLabs: {
     apiKey: process.env.ELEVENLABS_API_KEY || '',
     voiceId: process.env.ELEVENLABS_VOICE_ID || '',
   },
-  
+
   // LLM Providers
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
   },
-  
+
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY || '',
   },
-  
+
   // File upload limits
   maxFileSize: 200 * 1024 * 1024, // 200MB
   allowedMimeTypes: [
@@ -41,4 +43,3 @@ export const storagePaths = {
   audio: path.join(config.storageRoot, 'audio'),
   outputs: path.join(config.storageRoot, 'outputs'),
 };
-
