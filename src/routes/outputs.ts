@@ -4,10 +4,77 @@ import prisma from '../db';
 import { AppError } from '../utils/errors';
 import { readTextFile, readJsonFile, fileExists } from '../services/storage';
 
+const errorResponseSchema = {
+  type: 'object',
+  properties: {
+    error: {
+      type: 'object',
+      properties: {
+        code: { type: 'string' },
+        message: { type: 'string' },
+        details: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              path: { type: 'string' },
+              message: { type: 'string' },
+            },
+            required: ['path', 'message'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['code', 'message'],
+      additionalProperties: true,
+    },
+  },
+  required: ['error'],
+  additionalProperties: false,
+} as const;
+
+
 export async function outputsRoutes(fastify: FastifyInstance) {
   // GET /api/lectures/:lectureId/transcript
   fastify.get(
     '/:lectureId/transcript',
+    {
+      schema: {
+        tags: ['Outputs'],
+        summary: 'Get transcript',
+        description: 'Returns the JSON transcript with timestamped segments',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              language: { type: 'string' },
+              segments: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    start: { type: 'number' },
+                    end: { type: 'number' },
+                    text: { type: 'string' },
+                    speaker: { type: 'string', nullable: true },
+                  },
+                },
+              },
+            },
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { lectureId: string } }>,
       reply: FastifyReply
@@ -43,6 +110,34 @@ export async function outputsRoutes(fastify: FastifyInstance) {
   // GET /api/lectures/:lectureId/notes?type=short|detailed
   fastify.get(
     '/:lectureId/notes',
+    {
+      schema: {
+        tags: ['Outputs'],
+        summary: 'Get notes',
+        description: 'Returns markdown notes (short or detailed)',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string'},
+          },
+        },
+        querystring: {
+          type: 'object',
+          properties: {
+            type: { type: 'string', enum: ['short', 'detailed'], default: 'short' },
+          },
+        },
+        response: {
+          200: {
+            type: 'string',
+            description: 'Markdown notes',
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{
         Params: { lectureId: string };
@@ -96,6 +191,28 @@ export async function outputsRoutes(fastify: FastifyInstance) {
   // GET /api/lectures/:lectureId/flashcards
   fastify.get(
     '/:lectureId/flashcards',
+    {
+      schema: {
+        tags: ['Outputs'],
+        summary: 'Get flashcards',
+        description: 'Returns flashcards in JSON format',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            description: 'Flashcards JSON',
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { lectureId: string } }>,
       reply: FastifyReply
@@ -131,6 +248,28 @@ export async function outputsRoutes(fastify: FastifyInstance) {
   // GET /api/lectures/:lectureId/quiz
   fastify.get(
     '/:lectureId/quiz',
+    {
+      schema: {
+        tags: ['Outputs'],
+        summary: 'Get quiz',
+        description: 'Returns quiz questions in JSON format',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            description: 'Quiz JSON',
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { lectureId: string } }>,
       reply: FastifyReply
@@ -166,6 +305,28 @@ export async function outputsRoutes(fastify: FastifyInstance) {
   // GET /api/lectures/:lectureId/podcast/script
   fastify.get(
     '/:lectureId/podcast/script',
+    {
+      schema: {
+        tags: ['Outputs'],
+        summary: 'Get podcast script',
+        description: 'Returns the podcast script as plain text',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'string',
+            description: 'Podcast script text',
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { lectureId: string } }>,
       reply: FastifyReply
@@ -202,6 +363,29 @@ export async function outputsRoutes(fastify: FastifyInstance) {
   // GET /api/lectures/:lectureId/podcast/audio
   fastify.get(
     '/:lectureId/podcast/audio',
+    {
+      schema: {
+        tags: ['Outputs'],
+        summary: 'Get podcast audio',
+        description: 'Returns the podcast audio as MP3 stream',
+        params: {
+          type: 'object',
+          required: ['lectureId'],
+          properties: {
+            lectureId: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'string',
+            format: 'binary',
+            description: 'MP3 audio file',
+          },
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (
       request: FastifyRequest<{ Params: { lectureId: string } }>,
       reply: FastifyReply
