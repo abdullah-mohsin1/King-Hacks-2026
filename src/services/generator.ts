@@ -75,12 +75,16 @@ class StubGenerator implements LLMProvider {
 
   private generateShortNotes(transcript: Transcript): string {
     const lines: string[] = ['# Lecture Notes\n'];
-    
-    transcript.segments.forEach((seg, idx) => {
-      if (seg.text.trim()) {
-        lines.push(`- ${seg.text.trim()} ${formatTimeRange(seg.start, seg.end)}`);
-      }
+    const sentences = this.extractSentences(transcript);
+    const summarySentences = this.pickSummarySentences(sentences, 6);
+
+    summarySentences.forEach((sentence) => {
+      lines.push(`- ${sentence}`);
     });
+
+    if (summarySentences.length === 0) {
+      lines.push('- No summary available.');
+    }
 
     return lines.join('\n');
   }
@@ -91,23 +95,74 @@ class StubGenerator implements LLMProvider {
       `*Generated with ${prefs?.tone || 'default'} tone*\n`,
     ];
 
-    // Group segments into sections (every ~10 segments)
-    const sectionSize = 10;
-    for (let i = 0; i < transcript.segments.length; i += sectionSize) {
-      const section = transcript.segments.slice(i, i + sectionSize);
-      const startTime = section[0].start;
-      const endTime = section[section.length - 1].end;
+    const sentences = this.extractSentences(transcript);
+    const summarySentences = this.pickSummarySentences(sentences, 12);
+    const sectionSize = 4;
 
-      lines.push(`\n## Section ${Math.floor(i / sectionSize) + 1} ${formatTimeRange(startTime, endTime)}\n`);
-      
-      section.forEach((seg) => {
-        if (seg.text.trim()) {
-          lines.push(`${seg.text.trim()} ${formatTimeRange(seg.start, seg.end)}\n`);
-        }
+    for (let i = 0; i < summarySentences.length; i += sectionSize) {
+      const section = summarySentences.slice(i, i + sectionSize);
+      lines.push(`\n## Section ${Math.floor(i / sectionSize) + 1}\n`);
+      section.forEach((sentence) => {
+        lines.push(`- ${sentence}\n`);
       });
     }
 
+    if (summarySentences.length === 0) {
+      lines.push('\nNo summary available.\n');
+    }
+
     return lines.join('\n');
+  }
+
+  private extractSentences(transcript: Transcript): string[] {
+    const text = transcript.segments
+      .map((seg) => seg.text.trim())
+      .filter((seg) => seg.length > 0)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!text) {
+      return [];
+    }
+
+    return text
+      .split(/(?<=[.!?])\s+/)
+      .map((sentence) => sentence.trim())
+      .filter((sentence) => sentence.length > 0);
+  }
+
+  private pickSummarySentences(sentences: string[], maxCount: number): string[] {
+    if (sentences.length <= maxCount) {
+      return sentences;
+    }
+
+    const scored = sentences.map((sentence, index) => ({
+      sentence,
+      index,
+      score: this.scoreSentence(sentence),
+    }));
+
+    scored.sort((a, b) => b.score - a.score);
+    const top = scored.slice(0, maxCount).sort((a, b) => a.index - b.index);
+    return top.map((item) => item.sentence);
+  }
+
+  private scoreSentence(sentence: string): number {
+    const words = sentence
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter((word) => word.length > 3);
+
+    const keywordBoost = ['important', 'key', 'note', 'summary', 'definition'];
+    let score = words.length;
+    keywordBoost.forEach((keyword) => {
+      if (sentence.toLowerCase().includes(keyword)) {
+        score += 5;
+      }
+    });
+    return score;
   }
 
   private generateFlashcards(transcript: Transcript): any {
