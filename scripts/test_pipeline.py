@@ -4,7 +4,6 @@ Quick test script to verify the LLM pipeline works
 Creates a sample transcript and generates notes to console
 """
 
-import json
 import os
 import sys
 from dotenv import load_dotenv
