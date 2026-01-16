@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique // e.g., "CISC 121"
+  title     String
+  createdAt DateTime  @default(now())
+  lectures  Lecture[]
+
+  @@map("courses")
+}
+
+model Lecture {
+  id                  Int       @id @default(autoincrement())
+  courseId            Int
+  lectureNumber       Int
+  lectureTitle        String?
+  recordedAt          DateTime?
+  audioFilename       String
+  audioMime           String
+  audioPath           String
+  durationSeconds     Float?
+  status              String    // uploaded | transcribing | transcribed | generating | voiced | complete | failed
+  errorMessage        String?
+  transcriptJsonPath  String?
+  transcriptTextPath  String?
+  notesShortMdPath    String?
+  notesDetailedMdPath String?
+  flashcardsJsonPath String?
+  quizJsonPath       String?
+  podcastScriptPath  String?
+  podcastAudioMp3Path String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  course             Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, lectureNumber])
+  @@map("lectures")
+}
+
