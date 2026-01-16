@@ -22,6 +22,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.31.0",
     "@fastify/multipart": "^8.0.0",
     "@fastify/swagger": "^8.13.0",
     "@fastify/swagger-ui": "^2.0.0",
