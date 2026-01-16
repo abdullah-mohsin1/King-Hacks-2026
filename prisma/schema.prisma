@@ -48,3 +48,14 @@ model Lecture {
   @@map("lectures")
 }
 
+model Upload {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  filepath  String
+  mimetype  String
+  size      Int
+  status    String   @default("uploaded")
+  createdAt DateTime @default(now())
+
+  @@map("uploads")
+}
