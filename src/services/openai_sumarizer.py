@@ -17,7 +17,7 @@ if __name__ == "__main__":
     load_dotenv()
 
 
-class GeminiSummarizer:
+class OpenAISummarizer:
     """OpenAI-based summarizer using LangChain"""
     
     def __init__(self, api_key: str, model: str = "gpt-3.5-turbo"):
