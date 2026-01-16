@@ -377,8 +377,18 @@ export async function generateOutputs(
 }> {
   const transcript: Transcript = await readJsonFile(transcriptJsonPath);
   const provider = getGeneratorProvider();
+  let outputs: Awaited<ReturnType<LLMProvider['generateNotes']>>;
 
-  const outputs = await provider.generateNotes(transcript, options);
+  try {
+    outputs = await provider.generateNotes(transcript, options);
+  } catch (error) {
+    console.error(
+      'Primary generator failed; falling back to stub output generation.',
+      error
+    );
+    const fallback = new StubGenerator();
+    outputs = await fallback.generateNotes(transcript, options);
+  }
   const result: any = {};
 
   if (outputs.notesShort) {
@@ -428,4 +438,3 @@ export async function generateOutputs(
 
   return result;
 }
-

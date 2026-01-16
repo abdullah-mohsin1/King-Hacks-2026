@@ -38,7 +38,10 @@ export default function LecturePage() {
   }, [courseCode, lectureNumber]);
 
   useEffect(() => {
-    if (lecture && (lecture.status === 'transcribing' || lecture.status === 'generating')) {
+    if (
+      lecture &&
+      ['transcribing', 'transcribed', 'generating', 'voiced'].includes(lecture.status)
+    ) {
       const interval = setInterval(() => {
         loadStatus();
       }, 2000);
@@ -125,9 +128,12 @@ export default function LecturePage() {
   };
 
   useEffect(() => {
-    if (activeTab === 'notes' && lecture?.status === 'complete') {
+    if (!lecture) {
+      return;
+    }
+    if (activeTab === 'notes' && ['complete', 'voiced'].includes(lecture.status)) {
       loadNotes();
-    } else if (activeTab === 'transcript' && lecture?.status === 'complete') {
+    } else if (activeTab === 'transcript' && ['complete', 'voiced'].includes(lecture.status)) {
       loadTranscript();
     }
   }, [activeTab, notesType, lecture?.status]);
@@ -160,7 +166,12 @@ export default function LecturePage() {
     } else if (statusText === 'failed') {
       bgColor = 'bg-maroon-100 text-maroon-800';
       icon = <AlertCircle className="w-4 h-4" />;
-    } else if (statusText === 'transcribing' || statusText === 'generating') {
+    } else if (
+      statusText === 'transcribing' ||
+      statusText === 'transcribed' ||
+      statusText === 'generating' ||
+      statusText === 'voiced'
+    ) {
       bgColor = 'bg-yellow-100 text-yellow-800';
       icon = <Loader className="w-4 h-4 animate-spin" />;
     }
@@ -232,18 +243,37 @@ export default function LecturePage() {
       {/* Error Message */}
       {lecture.status === 'failed' && lecture.errorMessage && (
         <div className="card mb-8 bg-maroon-50 border-maroon-200">
-          <div className="flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-maroon-950 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-maroon-950 mb-1">Processing Failed</h3>
-              <p className="text-maroon-900">{lecture.errorMessage}</p>
+          <div className="flex items-start justify-between space-x-6">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-maroon-950 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-maroon-950 mb-1">Processing Failed</h3>
+                <p className="text-maroon-900">{lecture.errorMessage}</p>
+              </div>
             </div>
+            <button
+              onClick={handleProcess}
+              disabled={processing}
+              className="btn-secondary flex items-center space-x-2 disabled:opacity-50"
+            >
+              {processing ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  <span>Retrying...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5" />
+                  <span>Retry Processing</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
 
       {/* Outputs Tabs */}
-      {lecture.status === 'complete' && (
+      {['complete', 'voiced'].includes(lecture.status) && (
         <div className="card">
           <div className="border-b border-gray-200 mb-6">
             <nav className="flex space-x-8">
@@ -339,8 +369,9 @@ export default function LecturePage() {
 
       {/* Processing Status */}
       {(lecture.status === 'transcribing' ||
+        lecture.status === 'transcribed' ||
         lecture.status === 'generating' ||
-        lecture.status === 'transcribed') && (
+        lecture.status === 'voiced') && (
         <div className="card bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-300">
           <div className="flex items-center space-x-4">
             <Loader className="w-8 h-8 animate-spin text-yellow-950" />
@@ -364,4 +395,3 @@ function formatTime(seconds: number): string {
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
-

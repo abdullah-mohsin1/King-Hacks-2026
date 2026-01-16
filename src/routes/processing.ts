@@ -4,6 +4,42 @@ import prisma from '../db';
 import { AppError } from '../utils/errors';
 import { jobRunner } from '../services/jobs';
 
+const processRequestSchema = z.object({
+  generate: z
+    .object({
+      notesShort: z.boolean().default(true),
+      notesDetailed: z.boolean().default(true),
+      flashcards: z.boolean().default(false),
+      quiz: z.boolean().default(false),
+      podcastScript: z.boolean().default(true),
+    })
+    .default({
+      notesShort: true,
+      notesDetailed: true,
+      flashcards: false,
+      quiz: false,
+      podcastScript: true,
+    }),
+  prefs: z
+    .object({
+      tone: z.enum(['friendly tutor', 'formal', 'exam mode']).optional(),
+      difficulty: z.enum(['intro', 'intermediate', 'advanced']).optional(),
+      lengthMinutes: z.number().int().min(1).optional(),
+      focusTopics: z.array(z.string()).optional(),
+    })
+    .optional(),
+  tts: z
+    .object({
+      enabled: z.boolean().default(true),
+      voiceId: z.string().optional(),
+      twoVoice: z.boolean().default(false),
+    })
+    .default({
+      enabled: true,
+      twoVoice: false,
+    }),
+});
+
 const errorResponseSchema = {
   type: 'object',
   properties: {
@@ -228,4 +264,3 @@ export async function processingRoutes(fastify: FastifyInstance) {
     }
   );
 }
-
