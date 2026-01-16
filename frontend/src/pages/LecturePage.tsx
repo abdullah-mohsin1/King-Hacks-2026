@@ -25,6 +25,7 @@ export default function LecturePage() {
   const [status, setStatus] = useState<ProcessingStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [processError, setProcessError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'notes' | 'transcript' | 'flashcards' | 'quiz'>('notes');
   const [notesType, setNotesType] = useState<'short' | 'detailed'>('short');
   const [notesContent, setNotesContent] = useState<string>('');
@@ -78,6 +79,7 @@ export default function LecturePage() {
   const handleProcess = async () => {
     if (!lecture) return;
     setProcessing(true);
+    setProcessError(null);
     try {
       await lecturesApi.process(lecture.id, {
         generate: {
@@ -94,6 +96,7 @@ export default function LecturePage() {
       loadLecture();
     } catch (error) {
       console.error('Failed to start processing:', error);
+      setProcessError('Failed to start processing. Make sure the API server is running.');
     } finally {
       setProcessing(false);
     }
@@ -222,7 +225,7 @@ export default function LecturePage() {
             <button
               onClick={handleProcess}
               disabled={processing}
-              className="btn-secondary flex items-center space-x-2 disabled:opacity-50"
+              className="btn-secondary inline-flex min-w-[12rem] items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {processing ? (
                 <>
@@ -237,6 +240,9 @@ export default function LecturePage() {
               )}
             </button>
           </div>
+          {processError && (
+            <p className="mt-3 text-sm text-maroon-900">{processError}</p>
+          )}
         </div>
       )}
 
@@ -254,7 +260,7 @@ export default function LecturePage() {
             <button
               onClick={handleProcess}
               disabled={processing}
-              className="btn-secondary flex items-center space-x-2 disabled:opacity-50"
+              className="btn-secondary inline-flex min-w-[12rem] items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {processing ? (
                 <>
@@ -269,6 +275,9 @@ export default function LecturePage() {
               )}
             </button>
           </div>
+          {processError && (
+            <p className="mt-3 text-sm text-maroon-900">{processError}</p>
+          )}
         </div>
       )}
 
