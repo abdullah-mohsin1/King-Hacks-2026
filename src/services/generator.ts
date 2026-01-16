@@ -237,7 +237,7 @@ class GeminiGenerator implements LLMProvider {
     options: GenerationOptions
   ): Promise<any> {
     return new Promise((resolve, reject) => {
-      const pythonScript = path.join(__dirname, 'gemini_summarizer.py');
+      const pythonScript = path.join(__dirname, 'openai_summarizer.py');
       
       // Create temporary transcript JSON string
       const transcriptData = JSON.stringify(transcript);
