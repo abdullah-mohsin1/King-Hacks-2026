@@ -1,0 +1,32 @@
+{
+  "name": "lecture-library-backend",
+  "version": "1.0.0",
+  "description": "Backend for Lecture Library app - transcribe, generate notes, and create podcast recaps",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:push": "prisma db push",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": ["lecture", "transcription", "notes", "education"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/multipart": "^8.0.0",
+    "@prisma/client": "^5.19.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.12",
+    "prisma": "^5.19.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}
+
