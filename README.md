@@ -1,7 +1,9 @@
 # Lecture Library
 
-Hackathon-friendly lecture processing backend with a React frontend. Upload recordings, generate transcripts and study materials, and serve them via an API.
 
+QU Lecture Library is a platform for students who miss class. If you cannot attend a lecture, you can visit the site, find your course, select the lecture you missed, and view detailed notes that explain exactly what the professor covered. These notes are generated from lecture recordings uploaded by other students, either from previous semesters or by someone who attended the class, allowing everyone to access the same in-depth explanations even if they were not there in person.
+
+A video demo: https://drive.google.com/file/d/1J3paiYlzyWGG4227Bw-BhMcEz-qsM5oS/view
 ## Features
 
 - Upload audio/video lectures under course codes
